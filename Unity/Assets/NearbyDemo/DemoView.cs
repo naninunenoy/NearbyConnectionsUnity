@@ -105,6 +105,12 @@ internal sealed class DemoView
 
     public void SetStatus(string value) => status.text = value;
 
+    public void PlacePeers(bool afterDemo)
+    {
+        int index = afterDemo ? body.childCount - 1 : 1;
+        if (peers.GetSiblingIndex() != index) peers.SetSiblingIndex(index);
+    }
+
     public void ClearPeers() => DemoUi.Clear(peers);
 
     public void Connect(string name, Action connect) => DemoUi.Button(peers, $"Connect to {name}", connect);

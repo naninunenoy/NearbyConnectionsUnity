@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 internal static class DemoUi
 {
+    private const int TouchHeight = 88;
+
     public static readonly Color Background = new Color32(13, 22, 36, 255);
     public static readonly Color Panel = new Color32(23, 37, 55, 255);
     public static readonly Color ButtonColor = new Color32(42, 64, 87, 255);
@@ -69,7 +71,7 @@ internal static class DemoUi
     public static Button Button(Transform parent, string title, Action onClick, bool primary = false)
     {
         var rect = Rect(parent, title);
-        rect.gameObject.AddComponent<LayoutElement>().minHeight = 62;
+        rect.gameObject.AddComponent<LayoutElement>().minHeight = TouchHeight;
         var background = Surface(rect, primary ? Accent : ButtonColor, true);
         var button = rect.gameObject.AddComponent<Button>();
         button.targetGraphic = background;
@@ -83,8 +85,8 @@ internal static class DemoUi
     public static InputField Input(Transform parent, string hint, int limit)
     {
         var rect = Rect(parent, "Message");
-        rect.gameObject.AddComponent<LayoutElement>().minHeight = 62;
-        var background = Surface(rect, Panel, true);
+        rect.gameObject.AddComponent<LayoutElement>().minHeight = TouchHeight;
+        var background = Surface(rect, Background, true);
         var input = rect.gameObject.AddComponent<InputField>();
         input.targetGraphic = background;
         input.characterLimit = limit;

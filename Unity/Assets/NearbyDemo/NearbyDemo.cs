@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using NearbyConnections;
 using UnityEngine;
@@ -110,8 +111,11 @@ internal sealed class NearbyDemo : MonoBehaviour
         RenderGroup();
     }
 
-    private void RenderGroup() => groupView.Render(tab, group, connection.IsHost,
-        connection.Active, DemoAlbum.Available, albumAccess);
+    private void RenderGroup()
+    {
+        view.PlacePeers(tab == DemoTab.SharedScene && group.InScene && !connection.Requests.Any());
+        groupView.Render(tab, group, connection.IsHost, connection.Active, DemoAlbum.Available, albumAccess);
+    }
 
     private void EnableAlbum()
     {
