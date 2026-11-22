@@ -46,7 +46,7 @@ Package Manager の **Add package from disk** で `Packages/dev.naninunenoy.near
 
 ## iOS で試す
 
-iOS 向けのブリッジは実装済みですが、iOS ビルドと端末間通信はまだ検証できていません。現在は BLE と同一 Wi-Fi LAN を対象とし、Hotspot による接続は有効にしていません。
+Unity からの Xcode 出力と署名なしの iOS ビルドを確認済みです。端末間通信は実機での確認が必要です。現在は BLE と同一 Wi-Fi LAN を対象とし、Hotspot による接続は有効にしていません。
 
 1. Unity Hub で `Unity/` を開き、Unity 6000.3.29f1 の iOS Build Support を使って iOS に切り替え、`Assets/Scenes/SampleScene.unity` をビルドします。
 2. 生成された Xcode プロジェクトで署名と実機を設定します。ビルド時に Google Nearby Connections の Swift Package（リビジョン `15241799d2e26722128f6f9815951eb1d40b6110`）が必要です。Xcode はネットワークから依存関係を取得します。
