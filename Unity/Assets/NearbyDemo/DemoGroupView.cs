@@ -24,6 +24,9 @@ internal sealed class DemoGroupView
     private readonly Button start;
     private readonly InputField input;
     private readonly Button send;
+    private readonly Button photo;
+    private readonly Button enablePhotos;
+    private readonly Text photoHint;
     private readonly Button color;
     private readonly Button[] cells = new Button[DemoGroup.BoardSize * DemoGroup.BoardSize];
     private readonly Dictionary<DemoChat, (GameObject row, Texture2D texture)> rows = new();
@@ -31,7 +34,7 @@ internal sealed class DemoGroupView
     private int chatVersion = -1;
 
     public DemoGroupView(Transform parent, RectTransform overlayRoot, Action toggleReady, Action startScene,
-        Action<string> sendText, Action<int> move, Action cycleColor)
+        Action<string> sendText, Action openAlbum, Action enableAlbum, Action<int> move, Action cycleColor)
     {
         this.overlayRoot = overlayRoot;
         lobby = DemoUi.Rect(parent, "Lobby");
@@ -46,12 +49,17 @@ internal sealed class DemoGroupView
         start = DemoUi.Button(actions, "Start scene", startScene, true);
         DemoUi.Label(lobby, "Group chat", 32, true);
         input = DemoUi.Input(lobby, "Message", DemoGroup.MaxText);
-        send = DemoUi.Button(lobby, "Send message", () =>
+        var compose = DemoUi.Row(lobby, "Chat Actions");
+        send = DemoUi.Button(compose, "Send message", () =>
         {
             if (string.IsNullOrWhiteSpace(input.text)) return;
             sendText(input.text);
             input.text = "";
         }, true);
+        photo = DemoUi.Button(compose, "Photo", openAlbum);
+        enablePhotos = DemoUi.Button(lobby, "Enable photos", enableAlbum);
+        photoHint = DemoUi.Label(lobby, "To send photos, enable photo access before connecting.", 22);
+        photoHint.color = DemoUi.Muted;
         messages = DemoUi.Rect(lobby, "Chat Messages");
         DemoUi.Stack(messages);
 
@@ -75,7 +83,7 @@ internal sealed class DemoGroupView
         color = DemoUi.Button(scene, "Change block color", cycleColor, true);
     }
 
-    public void Render(DemoTab tab, DemoGroup group, bool host)
+    public void Render(DemoTab tab, DemoGroup group, bool host, bool active, bool albumAvailable, bool albumAccess)
     {
         lobby.gameObject.SetActive(tab == DemoTab.Lobby);
         scene.gameObject.SetActive(tab == DemoTab.SharedScene);
@@ -98,6 +106,10 @@ internal sealed class DemoGroupView
             start.interactable = group.CanStart;
             input.interactable = group.Joined;
             send.interactable = group.Joined;
+            photo.gameObject.SetActive(albumAvailable && group.Joined);
+            photo.interactable = albumAccess;
+            enablePhotos.gameObject.SetActive(albumAvailable && !albumAccess && !active);
+            photoHint.gameObject.SetActive(albumAvailable && !albumAccess && active);
             if (chatVersion != group.ChatVersion)
             {
                 RenderChat(group.Chat);
@@ -124,8 +136,11 @@ internal sealed class DemoGroupView
         foreach (var pair in rows)
         {
             if (current.Contains(pair.Key)) continue;
-            pair.Value.row.SetActive(false);
-            UnityEngine.Object.Destroy(pair.Value.row);
+            if (pair.Value.row != null)
+            {
+                pair.Value.row.SetActive(false);
+                UnityEngine.Object.Destroy(pair.Value.row);
+            }
             if (pair.Value.texture != null) UnityEngine.Object.Destroy(pair.Value.texture);
             expired.Add(pair.Key);
         }
@@ -146,10 +161,10 @@ internal sealed class DemoGroupView
                 if (texture == null) DemoUi.Label(row, "Image could not be opened.");
                 else
                 {
-                    var thumb = DemoUi.Rect(row, "Image Thumbnail");
-                    thumb.gameObject.AddComponent<LayoutElement>().preferredHeight = 168;
-                    PhotoSurface(thumb, texture, 4);
-                    DemoUi.Button(row, "Open photo", () => ShowPhoto(message.Photo));
+                    var thumb = DemoUi.Button(row, "", () => ShowPhoto(message.Photo));
+                    thumb.name = "Open photo";
+                    thumb.GetComponent<LayoutElement>().preferredHeight = 168;
+                    PhotoSurface(thumb.GetComponent<RectTransform>(), texture, 4);
                 }
             }
             rows.Add(message, (row.gameObject, texture));
@@ -159,7 +174,7 @@ internal sealed class DemoGroupView
     public void Reset()
     {
         RenderChat(Array.Empty<DemoChat>());
-        input.text = "";
+        if (input != null) input.text = "";
         ClosePreview();
     }
 
@@ -184,15 +199,17 @@ internal sealed class DemoGroupView
 
     private void ClosePreview()
     {
-        if (preview == null) return;
-        preview.gameObject.SetActive(false);
-        UnityEngine.Object.Destroy(preview.gameObject);
-        UnityEngine.Object.Destroy(previewTexture);
+        if (preview != null)
+        {
+            preview.gameObject.SetActive(false);
+            UnityEngine.Object.Destroy(preview.gameObject);
+        }
+        if (previewTexture != null) UnityEngine.Object.Destroy(previewTexture);
         preview = null;
         previewTexture = null;
     }
 
-    private static Texture2D LoadPhoto(byte[] bytes)
+    public static Texture2D LoadPhoto(byte[] bytes)
     {
         if (!DemoPhotoBytes.Valid(bytes)) return null;
         var texture = new Texture2D(2, 2, TextureFormat.RGB24, false);
@@ -201,7 +218,7 @@ internal sealed class DemoGroupView
         return null;
     }
 
-    private static void PhotoSurface(RectTransform frame, Texture2D texture, float inset)
+    public static void PhotoSurface(RectTransform frame, Texture2D texture, float inset)
     {
         var image = DemoUi.Rect(frame, "Image").gameObject.AddComponent<RawImage>();
         DemoUi.Fill(image.rectTransform, inset);

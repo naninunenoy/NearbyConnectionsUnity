@@ -21,6 +21,8 @@ internal sealed class DemoView
     private Button joinButton;
     private Button stopButton;
     private Button strategyButton;
+    private Rect lastSafeArea;
+    private Vector2 lastScreenSize;
 
     public DemoView(Transform parent)
     {
@@ -129,6 +131,9 @@ internal sealed class DemoView
         if (Screen.width <= 0 || Screen.height <= 0) return;
         Rect area = Screen.safeArea;
         var size = new Vector2(Screen.width, Screen.height);
+        if (size == lastScreenSize && area == lastSafeArea) return;
+        lastScreenSize = size;
+        lastSafeArea = area;
         safe.anchorMin = area.min / size;
         safe.anchorMax = area.max / size;
         safe.offsetMin = safe.offsetMax = Vector2.zero;

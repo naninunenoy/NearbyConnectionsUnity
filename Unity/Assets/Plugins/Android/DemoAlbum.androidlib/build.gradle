@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+
+def unityLibrary = project(':unityLibrary')
+evaluationDependsOn(unityLibrary.path)
+def unityAndroid = unityLibrary.extensions.getByName('android')
+
+android {
+    namespace 'com.example.nearbydemo'
+    compileSdk = unityAndroid.compileSdk
+    compileSdkMinor = unityAndroid.compileSdkMinor
+
+    defaultConfig {
+        minSdk = 25
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+        }
+    }
+}

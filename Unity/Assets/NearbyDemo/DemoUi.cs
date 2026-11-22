@@ -40,6 +40,7 @@ internal static class DemoUi
         var layout = rect.gameObject.AddComponent<HorizontalLayoutGroup>();
         layout.spacing = 8;
         layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
         return rect;
     }
 

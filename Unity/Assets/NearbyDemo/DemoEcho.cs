@@ -42,7 +42,11 @@ internal sealed class DemoEcho
         if (!message.IsReply)
         {
             message.IsReply = true;
-            await connection.Send(endpoint, Pack(message));
+            int session = connection.SessionVersion;
+            byte[] reply = Pack(message);
+            await connection.Send(endpoint, reply);
+            if (connection.SessionVersion == session)
+                connection.Report($"Echoed {reply.Length} bytes to {endpoint}.");
         }
         else if (pings.TryGetValue(endpoint, out var ping) && message.Token == ping.token)
         {
