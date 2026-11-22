@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MessagePack;
 using NearbyConnections;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,9 +13,10 @@ using UnityEngine.Android;
 internal sealed class NearbyDemo : MonoBehaviour
 {
     private const string ServiceId = "com.example.nearbyconnections.demo";
+    private const int MaxEchoBytes = 64;
     private readonly Dictionary<string, NearbyEndpoint> discovered = new();
     private readonly Dictionary<long, NearbyConnectionRequest> requests = new();
-    private readonly Dictionary<string, (byte[] data, double time)> pings = new();
+    private readonly Dictionary<string, (Guid token, double time)> pings = new();
     private NearbyClient client;
     private PanelSettings panel;
     private Label status;
@@ -200,31 +202,39 @@ internal sealed class NearbyDemo : MonoBehaviour
 
     private async Task SendPing(NearbyClient current, string endpoint)
     {
-        var data = new byte[20];
-        data[1] = 0x80;
-        data[2] = 0xff;
-        var token = Guid.NewGuid().ToByteArray();
-        Buffer.BlockCopy(token, 0, data, 4, token.Length);
-        pings[endpoint] = (data, Time.realtimeSinceStartupAsDouble);
+        var message = new EchoMessage { Token = Guid.NewGuid() };
+        var data = MessagePackSerializer.Serialize(message, MessagePackSerializerOptions.DefaultAot);
+        pings[endpoint] = (message.Token, Time.realtimeSinceStartupAsDouble);
         status.text = $"Waiting for echo from {endpoint}...";
         await current.SendBytesAsync(endpoint, data);
     }
 
     private async void HandleBytes(NearbyClient current, string endpoint, byte[] data)
     {
-        if (data.Length != 20) return;
+        if (data.Length == 0 || data.Length > MaxEchoBytes) return;
+
+        EchoMessage message;
         try
         {
-            if (data[0] == 0)
+            message = MessagePackSerializer.Deserialize<EchoMessage>(data, MessagePackSerializerOptions.DefaultAot);
+        }
+        catch (MessagePackSerializationException)
+        {
+            return;
+        }
+
+        if (message == null || message.Token == Guid.Empty) return;
+        try
+        {
+            if (!message.IsReply)
             {
-                data[0] = 1;
-                await current.SendBytesAsync(endpoint, data);
-                if (client == current) status.text = $"Echoed {data.Length} bytes to {endpoint}.";
+                message.IsReply = true;
+                var reply = MessagePackSerializer.Serialize(message, MessagePackSerializerOptions.DefaultAot);
+                await current.SendBytesAsync(endpoint, reply);
+                if (client == current) status.text = $"Echoed {reply.Length} bytes to {endpoint}.";
             }
-            else if (data[0] == 1 && pings.TryGetValue(endpoint, out var ping))
+            else if (pings.TryGetValue(endpoint, out var ping) && message.Token == ping.token)
             {
-                data[0] = 0;
-                if (!data.SequenceEqual(ping.data)) return;
                 pings.Remove(endpoint);
                 double milliseconds = (Time.realtimeSinceStartupAsDouble - ping.time) * 1000;
                 status.text = $"Verified {data.Length} bytes from {endpoint}. RTT {milliseconds:F1} ms.";
@@ -282,4 +292,11 @@ internal sealed class NearbyDemo : MonoBehaviour
         if (client != null) _ = client.ShutdownAsync();
         if (panel != null) Destroy(panel);
     }
+}
+
+[MessagePackObject]
+internal sealed partial class EchoMessage
+{
+    [Key(0)] public bool IsReply { get; set; }
+    [Key(1)] public Guid Token { get; set; }
 }

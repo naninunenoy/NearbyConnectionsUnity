@@ -8,10 +8,14 @@ Unity 6.3 から Google Nearby Connections を使う UPM パッケージです�
 2. **File > Build Profiles** で Android に切り替え、`Assets/Scenes/SampleScene.unity` を含めて APK をビルドします。Gradle が Google Maven と Maven Central から依存関係を取得します。
 3. Google Play 開発者サービスを利用できる Android 端末 2 台に APK を入れます。Wi-Fi と Bluetooth をオンにして、アプリの権限を許可します。権限ダイアログが閉じたら操作ボタンをもう一度押します。
 4. 両方で **Point to Point** を選び、片方で **Host (advertise)**、もう片方で **Join (discover)** を押します。参加側に表示されたホストを選びます。
-5. 両画面のコードを照合し、一致したら両方で **Codes match — accept** を押します。接続後に **Send echo** を押すと、相手が返した 20 バイトの一致と往復時間を表示します。両端末から送信できます。
+5. 両画面のコードを照合し、一致したら両方で **Codes match — accept** を押します。接続後に **Send echo** を押すと、返信のトークンが一致した場合に返信のバイト数と往復時間を表示します。両端末から送信できます。
 6. **Disconnect** を押して切断し、参加側から再接続できることを確認します。**End session** で公開・探索・接続をまとめて終了できます。
 
 3 台で試す場合は全台で **Star** を選び、参加者 2 台を同じホストに接続します。各参加者と送受信し、片方を切断したあとに残りの参加者とも送受信します。共有 Wi-Fi の有無は別の試行として記録してください。
+
+Echo デモは MessagePack for C# `4.0.0-rc.1` で要求と返信をエンコードします。必要な DLL とソースジェネレーターはデモ用 Unity プロジェクトに同梱しています。旧形式の Echo とは互換性がないので、確認には両端末で同じ版のデモを使ってください。
+
+`Unity/Assets/Plugins/MessagePack/` の DLL は NuGet 版です。MessagePack と SerializerFoundation `1.4.1` は `netstandard2.1` を使用しています。Microsoft の依存 DLL は `8.0.0`（System.Text.Json は `8.0.5`、System.Runtime.CompilerServices.Unsafe は `6.1.2`）です。
 
 ## アプリへの組み込み
 
