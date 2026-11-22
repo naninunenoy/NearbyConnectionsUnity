@@ -27,11 +27,11 @@ internal sealed class NearbyDemo : MonoBehaviour
     private bool busy;
     private int session;
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void ShowDemo()
     {
-        new GameObject("Nearby Android Demo").AddComponent<NearbyDemo>();
+        new GameObject("Nearby Demo").AddComponent<NearbyDemo>();
     }
 #endif
 

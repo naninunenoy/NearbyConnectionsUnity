@@ -1,0 +1,5 @@
+{
+  "name": "NearbyConnections.Editor",
+  "rootNamespace": "NearbyConnections.Editor",
+  "includePlatforms": ["Editor"]
+}

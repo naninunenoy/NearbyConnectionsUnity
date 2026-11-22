@@ -1,6 +1,6 @@
 # Nearby Connections for Unity
 
-Unity 6.3 の Android プレイヤーから Google Nearby Connections を使う UPM パッケージです。公開・探索、確認コードによる相互承認、バイト列の送受信、切断を提供します。接続方式は 1 対 1 の `PointToPoint` と、ホストに複数の参加者を接続する `Star` です。
+Unity 6.3 から Google Nearby Connections を使う UPM パッケージです。iOS 対応は実装済みで、実機検証はこれからです。公開・探索、確認コードによる相互承認、バイト列の送受信、切断を提供します。接続方式は 1 対 1 の `PointToPoint` と、ホストに複数の参加者を接続する `Star` です。
 
 ## Android で試す
 
@@ -24,3 +24,15 @@ Package Manager の **Add package from disk** で `Packages/dev.naninunenoy.near
 - バックグラウンド移行時にセッションは終了します。復帰後はクライアントを作り直します。`Faulted` の端末 ID が `null` の場合もセッション終了を表します。
 
 [Android の権限とセットアップ](https://developers.google.com/nearby/connections/android/get-started) · [Nearby Connections の API 仕様](https://developers.google.com/android/reference/com/google/android/gms/nearby/connection/ConnectionsClient)
+
+## iOS で試す
+
+iOS 向けのブリッジは実装済みですが、iOS ビルドと端末間通信はまだ検証できていません。現在は BLE と同一 Wi-Fi LAN を対象とし、Hotspot による接続は有効にしていません。
+
+1. Unity Hub で `Unity/` を開き、Unity 6000.3.29f1 の iOS Build Support を使って iOS に切り替え、`Assets/Scenes/SampleScene.unity` をビルドします。
+2. 生成された Xcode プロジェクトで署名と実機を設定します。ビルド時に Google Nearby Connections の Swift Package（リビジョン `15241799d2e26722128f6f9815951eb1d40b6110`）が必要です。Xcode はネットワークから依存関係を取得します。
+3. iOS または Android の端末で、上記 Android 手順と同じように公開・探索し、確認コードを照合して接続します。実機ごとに Bluetooth とローカルネットワークの使用を許可してください。
+
+利用アプリでは **Assets > Create > Nearby Connections > iOS Build Settings** から設定アセットを `Assets` 内に一つ作り、`Service Ids` に使用する全 Service ID を登録してください。利用目的の文言は用途に合わせて変更します。サンプルには設定済みです。iOS ビルド時に `Info.plist`、Swift ブリッジ、SDK 依存関係を設定します。既存の利用目的や Bonjour 設定は保持します。
+
+接続方式や端末間の互換性、再接続は実機での確認が必要です。[Google の iOS セットアップ](https://developers.google.com/nearby/connections/swift/get-started)も参照してください。

@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace NearbyConnections
 {
-    public sealed class NearbyClient
+    public sealed partial class NearbyClient
     {
         // Nearby Connections Android ConnectionsClient.MAX_BYTES_DATA_SIZE.
         public const int MaxBytesPayloadSize = 1047552;
 
-#if !UNITY_ANDROID || UNITY_EDITOR
+#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 #pragma warning disable CS0067 // Events are raised by the Android player.
 #endif
         public event Action<NearbyEndpoint> EndpointFound;
@@ -21,7 +21,7 @@ namespace NearbyConnections
         public event Action<string> Disconnected;
         public event Action<string, byte[]> BytesReceived;
         public event Action<string, NearbyException> Faulted;
-#if !UNITY_ANDROID || UNITY_EDITOR
+#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 #pragma warning restore CS0067
 #endif
 
@@ -48,13 +48,17 @@ namespace NearbyConnections
             if (!Enum.IsDefined(typeof(NearbyStrategy), options.Strategy))
                 throw new ArgumentOutOfRangeException(nameof(options.Strategy));
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
             if (active != null)
                 throw new NearbyException(NearbyError.InvalidState, "A Nearby client is already active.");
 
             var client = new NearbyClient();
+#if UNITY_ANDROID
             using (var activity = CurrentActivity())
                 client.bridge = new AndroidJavaObject(BridgeClass, activity, options.ServiceId, (int)options.Strategy);
+#else
+            client.CreateIos(options);
+#endif
 
             var host = new GameObject("Nearby Connections");
             UnityEngine.Object.DontDestroyOnLoad(host);
@@ -119,6 +123,8 @@ namespace NearbyConnections
             var copy = new sbyte[bytes.Length];
             Buffer.BlockCopy(bytes, 0, copy, 0, bytes.Length);
             return Submit(Command.SendBytes, endpointId, bytes: copy);
+#elif UNITY_IOS && !UNITY_EDITOR
+            return SubmitIos(Command.SendBytes, endpointId, bytes: (byte[])bytes.Clone());
 #else
             throw Unsupported();
 #endif
@@ -165,6 +171,8 @@ namespace NearbyConnections
                 throw;
             }
             return operation.Completion.Task;
+#elif UNITY_IOS && !UNITY_EDITOR
+            return SubmitIos(command, endpoint, name, requestId);
 #else
             throw Unsupported();
 #endif
@@ -200,6 +208,9 @@ namespace NearbyConnections
                 bridge.Dispose();
             }
 #endif
+#if UNITY_IOS && !UNITY_EDITOR
+            CloseIos();
+#endif
             if (pump != null)
             {
                 pump.Client = null;
@@ -210,6 +221,9 @@ namespace NearbyConnections
 
         internal void Update()
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            UpdateIos();
+#endif
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
             {
@@ -248,7 +262,7 @@ namespace NearbyConnections
         }
 
         private static NearbyException Unsupported() =>
-            new NearbyException(NearbyError.UnsupportedPlatform, "Nearby Connections requires an Android Player.");
+            new NearbyException(NearbyError.UnsupportedPlatform, "Nearby Connections requires an Android or iOS Player.");
 
 #if UNITY_ANDROID && !UNITY_EDITOR
         private const string BridgeClass = "com.example.nearbyconnections.NearbyBridge";
