@@ -35,7 +35,7 @@ Google は iOS・Android 間の通信を案内している。iOS の現行セッ
 | `UnityProject/` | パッケージをローカル参照する検証用 Unity プロジェクト。実機のビルドと動作確認に使う |
 | `Native/Android/` | Kotlin の Gradle ライブラリ。Nearby SDK を呼び出すブリッジを AAR にビルドし、配布パッケージへ組み込む |
 | `Native/iOS/` | ネイティブ単体の疎通を確認する Xcode プロジェクト。配布する Swift と C ABI のブリッジはパッケージ側に置き、必要に応じて検証用ターゲットからも同じソースを参照する |
-| `Packages/com.example.nearby-connections/` | 配布単位。C# 共通 API、Android の AAR、iOS のブリッジソース、ビルド処理、利用サンプルを含む。パッケージ ID は仮名 |
+| `Packages/dev.naninunenoy.nearby-connections/` | 配布単位。C# 共通 API、Android の AAR、iOS のブリッジソース、ビルド処理、利用サンプルを含む |
 
 利用アプリの Android ビルドでは Gradle が AAR と SDK 依存を解決する。iOS ビルドでは Unity が生成する Xcode プロジェクトで Swift ブリッジと Nearby SDK をビルドする。最初の通信方式の検証には、両 OS の公式ネイティブサンプルも使える。
 

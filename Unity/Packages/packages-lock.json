@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "dev.naninunenoy.nearby-connections": {
+      "version": "file:../../Packages/dev.naninunenoy.nearby-connections",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.modules.androidjni": "1.0.0"
+      }
+    },
     "com.unity.burst": {
       "version": "1.8.31",
       "depth": 2,
@@ -149,6 +157,12 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "com.unity.modules.androidjni": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {}
     },
     "com.unity.modules.hierarchycore": {
       "version": "1.0.0",

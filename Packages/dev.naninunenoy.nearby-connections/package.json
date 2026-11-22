@@ -1,0 +1,10 @@
+{
+  "name": "dev.naninunenoy.nearby-connections",
+  "version": "0.1.0",
+  "displayName": "Nearby Connections",
+  "description": "Google Nearby Connections for Unity on Android.",
+  "unity": "6000.3",
+  "dependencies": {
+    "com.unity.modules.androidjni": "1.0.0"
+  }
+}

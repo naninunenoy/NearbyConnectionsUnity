@@ -1,0 +1,2 @@
+-keep class com.example.nearbyconnections.NearbyBridge { public *; }
+-keep class com.example.nearbyconnections.NearbyBridge$Event { public *; }
