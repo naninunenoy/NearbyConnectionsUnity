@@ -15,6 +15,7 @@ internal sealed class DemoConnection
     private NearbyClient client;
     private bool busy;
 
+    public event Action Opened;
     public event Action Changed;
     public event Action<string> StatusChanged;
     public event Action<string, string> Connected;
@@ -52,6 +53,7 @@ internal sealed class DemoConnection
             current = NearbyClient.Create(new NearbyOptions { ServiceId = serviceId, Strategy = strategy });
             client = current;
             Attach(current);
+            Opened?.Invoke();
             Report(host ? "Starting advertising…" : "Starting discovery…");
             Changed?.Invoke();
             if (host) await current.StartAdvertisingAsync(name);
@@ -75,7 +77,6 @@ internal sealed class DemoConnection
 
     private void Attach(NearbyClient current)
     {
-        var pendingNames = new Dictionary<long, NearbyEndpoint>();
         current.EndpointFound += peer =>
         {
             discovered[peer.Id] = peer;
@@ -88,14 +89,13 @@ internal sealed class DemoConnection
         };
         current.ConnectionInitiated += request =>
         {
-            pendingNames[request.Id] = request.Endpoint;
             requests[request.Id] = request;
             Changed?.Invoke();
         };
         current.ConnectionResult += result =>
         {
-            requests.Remove(result.RequestId);
-            pendingNames.Remove(result.RequestId, out var peer);
+            requests.Remove(result.RequestId, out var request);
+            var peer = request.Endpoint;
             if (result.Status == NearbyConnectionStatus.Connected)
             {
                 if (string.IsNullOrEmpty(peer.Name)) discovered.TryGetValue(result.EndpointId, out peer);

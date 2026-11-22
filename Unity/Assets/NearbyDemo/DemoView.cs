@@ -5,10 +5,16 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
+internal enum DemoTab { Echo, Lobby, SharedScene }
+
 internal sealed class DemoView
 {
     private readonly RectTransform safe;
     private readonly RectTransform body;
+    private readonly ScrollRect scroll;
+    private Button[] tabs;
+    public RectTransform Content => body;
+    public RectTransform OverlayRoot => safe;
     private readonly RectTransform peers;
     private readonly Text status;
     private Button hostButton;
@@ -43,11 +49,35 @@ internal sealed class DemoView
         DemoUi.Label(safe, "Nearby Connections", 44, true);
         status = DemoUi.Label(safe, "", 23);
         status.color = DemoUi.Muted;
-        body = DemoUi.Scroll(safe, "Demo Content", out var scroll);
+        body = DemoUi.Scroll(safe, "Demo Content", out scroll);
         scroll.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
         peers = DemoUi.Rect(body, "Peers");
         DemoUi.Stack(peers);
     }
+
+    public void BuildTabs(Action<DemoTab> select)
+    {
+        var row = DemoUi.Row(safe, "Demo Tabs");
+        row.SetSiblingIndex(1);
+        tabs = new[]
+        {
+            DemoUi.Button(row, "Echo", () => select(DemoTab.Echo)),
+            DemoUi.Button(row, "Lobby", () => select(DemoTab.Lobby)),
+            DemoUi.Button(row, "Shared scene", () => select(DemoTab.SharedScene))
+        };
+    }
+
+    public void SetTab(DemoTab tab, bool active)
+    {
+        for (int i = 0; i < tabs.Length; i++)
+        {
+            var choice = (DemoTab)i;
+            tabs[i].targetGraphic.color = choice == tab ? DemoUi.Accent : DemoUi.ButtonColor;
+            tabs[i].interactable = !active || (tab == DemoTab.Echo) == (choice == DemoTab.Echo);
+        }
+    }
+
+    public void ResetScroll() => scroll.verticalNormalizedPosition = 1;
 
     public void BuildConnection(Action host, Action join, Action end, Action strategy)
     {
@@ -61,10 +91,11 @@ internal sealed class DemoView
         stopButton = DemoUi.Button(controls, "End session", end);
     }
 
-    public void SetConnectionControls(bool active, NearbyStrategy strategy)
+    public void SetConnectionControls(bool active, bool echo, NearbyStrategy strategy)
     {
         strategyButton.GetComponentInChildren<Text>().text = strategy == NearbyStrategy.Star
             ? "Strategy  ·  Star" : "Strategy  ·  Point to point";
+        strategyButton.gameObject.SetActive(echo);
         strategyButton.interactable = !active;
         hostButton.transform.parent.gameObject.SetActive(!active);
         stopButton.gameObject.SetActive(active);

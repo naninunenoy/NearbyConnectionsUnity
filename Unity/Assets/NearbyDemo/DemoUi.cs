@@ -79,6 +79,24 @@ internal static class DemoUi
         return button;
     }
 
+    public static InputField Input(Transform parent, string hint, int limit)
+    {
+        var rect = Rect(parent, "Message");
+        rect.gameObject.AddComponent<LayoutElement>().minHeight = 62;
+        var background = Surface(rect, Panel, true);
+        var input = rect.gameObject.AddComponent<InputField>();
+        input.targetGraphic = background;
+        input.characterLimit = limit;
+        var value = Label(rect, "", 24);
+        var placeholder = Label(rect, hint, 24);
+        placeholder.color = Muted;
+        Fill(value.rectTransform, 12);
+        Fill(placeholder.rectTransform, 12);
+        input.textComponent = value;
+        input.placeholder = placeholder;
+        return input;
+    }
+
     public static RectTransform Scroll(Transform parent, string name, out ScrollRect scroll)
     {
         var rect = Rect(parent, name);

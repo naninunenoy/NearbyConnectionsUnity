@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   ServiceIds:
   - com.example.nearbyconnections.demo
+  - com.example.nearbyconnections.group
   BluetoothUsage: Bluetooth is used to find nearby devices.
   LocalNetworkUsage: The local network is used to connect to nearby devices.
   LocationUsage: Location access is used to connect to nearby Wi-Fi hotspots.
